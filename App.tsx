@@ -111,8 +111,13 @@ const loadGameState = (): {
     const offlineStardustGains = (totalOfflineSps * researchBonuses.globalSpsMultiplier) * effectiveOfflineTime;
     const totalStardust = (savedState.stardust || 0) + offlineStardustGains;
     
+    let offlineResearchPointsGains = 0;
+    if (totalOfflineSps > 0) {
+        offlineResearchPointsGains = Math.floor(effectiveOfflineTime);
+    }
+    
     const loadedClickLevel = savedState.clickLevel || INITIAL_CLICK_LEVEL;
-    const loadedResearchPoints = savedState.researchPoints || 0;
+    const loadedResearchPoints = (savedState.researchPoints || 0) + offlineResearchPointsGains;
     const loadedGems = savedState.gems ?? 20; // Give gems to players from old saves
 
     return { 
@@ -223,10 +228,6 @@ function App() {
   useEffect(() => {
     const gameTick = setInterval(() => {
       setStardust(prev => prev + stardustPerSecond / 10);
-      // Small chance to generate research points
-      if (Math.random() < 0.001 * (stardustPerSecond > 0 ? Math.log10(stardustPerSecond + 1) : 0)) {
-          setResearchPoints(prev => prev + 1);
-      }
     }, 100);
 
     return () => clearInterval(gameTick);
@@ -234,12 +235,12 @@ function App() {
   
   useEffect(() => {
     const researchPointInterval = setInterval(() => {
-      // Award 1 research point every minute as long as the player has started generating stardust.
+      // Award 1 research point every second as long as the player has started generating stardust.
       // This prevents players from idling at the very beginning to farm points.
       if (stardustPerSecond > 0) {
         setResearchPoints(prev => prev + 1);
       }
-    }, 60000); // 1 minute
+    }, 1000); // 1 second
 
     return () => clearInterval(researchPointInterval);
   }, [stardustPerSecond]);
