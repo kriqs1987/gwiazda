@@ -1,5 +1,4 @@
 import React from 'react';
-import { CLICK_POWER_PER_LEVEL } from '../constants';
 
 interface ClickUpgradeItemProps {
   level: number;
@@ -7,7 +6,7 @@ interface ClickUpgradeItemProps {
   cost: number;
   currentPower: number;
   onUpgrade: () => void;
-  onSelect: (id: 'clicker') => void;
+  onSelect: () => void;
   isSelected: boolean;
 }
 
@@ -25,11 +24,11 @@ const ClickUpgradeItem: React.FC<ClickUpgradeItemProps> = ({ level, stardust, co
 
   return (
     <div 
-      onClick={() => onSelect('clicker')}
+      onClick={onSelect}
       className={`
       flex items-center justify-between p-3 rounded-lg w-full cursor-pointer
       bg-gray-800 bg-opacity-50 border 
-      ${isSelected ? 'border-green-400 ring-1 ring-green-500' : 'border-green-700'}
+      ${isSelected ? 'border-green-400 ring-1 ring-green-500' : 'border-gray-700'}
       transition-all duration-300
       ${canAfford ? 'hover:bg-green-800 hover:border-green-600' : ''}
     `}>
@@ -38,7 +37,7 @@ const ClickUpgradeItem: React.FC<ClickUpgradeItemProps> = ({ level, stardust, co
         <div>
           <h3 className="font-bold text-lg">Manual Amplifier</h3>
           <p className="text-xs text-green-300">
-            Level {level} ({currentPower}/click)
+            Level {level} ({currentPower.toFixed(1)}/click)
           </p>
         </div>
       </div>

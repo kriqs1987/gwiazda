@@ -5,7 +5,7 @@ interface ResearchItemProps {
   research: ResearchUpgrade;
   researchPoints: number;
   onBuy: (id: string) => void;
-  onSelect: (id: string) => void;
+  onSelect: () => void;
   isSelected: boolean;
 }
 
@@ -24,7 +24,7 @@ const ResearchItem: React.FC<ResearchItemProps> = ({ research, researchPoints, o
 
   return (
     <div 
-      onClick={() => onSelect(research.id)}
+      onClick={onSelect}
       className={`
         flex items-center justify-between p-3 rounded-lg w-full cursor-pointer
         bg-gray-800 bg-opacity-50 border 
@@ -62,7 +62,7 @@ const ResearchItem: React.FC<ResearchItemProps> = ({ research, researchPoints, o
             <div className="text-center">
               <span className="font-bold">Research</span>
               <span className="block text-xs text-gray-300">
-                Cost: {formatNumber(research.cost)} RP
+                Cost: {formatNumber(research.cost)} 🔬
               </span>
             </div>
           )}

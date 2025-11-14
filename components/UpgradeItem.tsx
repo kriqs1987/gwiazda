@@ -1,13 +1,14 @@
 import React from 'react';
 import { Generator } from '../types';
 import { UPGRADE_SPS_MULTIPLIER } from '../constants';
+import { getGeneratorTierStyle } from './getGeneratorTierStyle';
 
 interface UpgradeItemProps {
   generator: Generator;
   stardust: number;
   cost: number;
   onUpgrade: (id: number) => void;
-  onSelect: (id: number) => void;
+  onSelect: () => void;
   isSelected: boolean;
 }
 
@@ -27,22 +28,24 @@ const UpgradeItem: React.FC<UpgradeItemProps> = ({ generator, stardust, cost, on
   
   const currentBonus = (Math.pow(UPGRADE_SPS_MULTIPLIER, generator.level - 1) - 1) * 100;
 
+  const tierStyle = getGeneratorTierStyle(generator.level);
+
   return (
     <div 
-      onClick={() => onSelect(generator.id)}
+      onClick={onSelect}
       className={`
       flex items-center justify-between p-3 rounded-lg w-full cursor-pointer
       bg-gray-800 bg-opacity-50 border
       ${isSelected ? 'border-green-400 ring-1 ring-green-500' : 'border-gray-700'}
       transition-all duration-300
       ${!isOwned ? 'opacity-50' : ''}
-      ${canUpgrade ? 'hover:bg-purple-800 hover:border-purple-600' : ''}
+      ${canUpgrade ? 'hover:bg-green-800 hover:border-green-600' : ''}
     `}>
       <div className="flex items-center space-x-4">
-        <div className="text-3xl">{generator.icon}</div>
+        <div className="text-3xl" style={tierStyle}>{generator.icon}</div>
         <div>
-          <h3 className="font-bold text-lg">{generator.name}</h3>
-          <p className="text-xs text-purple-300">
+          <h3 className="font-bold text-lg">{generator.name} (SPS)</h3>
+          <p className="text-xs text-green-300">
             Level {generator.level} (+{currentBonus.toFixed(0)}% SPS)
           </p>
         </div>
@@ -50,17 +53,9 @@ const UpgradeItem: React.FC<UpgradeItemProps> = ({ generator, stardust, cost, on
 
       <div className="text-right">
         <button
-          onClick={(e) => {
-              e.stopPropagation();
-              onUpgrade(generator.id);
-          }}
+          onClick={(e) => { e.stopPropagation(); onUpgrade(generator.id); }}
           disabled={!canUpgrade}
-          className={`
-              px-4 py-2 rounded-md text-sm font-semibold w-32
-              transition-colors duration-200
-              focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-green-500
-              ${canUpgrade ? 'bg-green-600 hover:bg-green-500 cursor-pointer' : 'bg-gray-600 cursor-not-allowed'}
-          `}
+          className={`px-4 py-2 rounded-md text-sm font-semibold w-32 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-green-500 ${canUpgrade ? 'bg-green-600 hover:bg-green-500 cursor-pointer' : 'bg-gray-600 cursor-not-allowed'}`}
         >
           {!isOwned ? (
             <span className="text-xs">Buy First</span>

@@ -3,9 +3,9 @@ export interface Generator {
   name: string;
   description: string;
   count: number;
-  level: number;
+  level: number; // Production level
   baseCost: number;
-  baseUpgradeCost: number;
+  baseUpgradeCost: number; // Production upgrade cost
   sps: number; // Stardust Per Second
   icon: string;
 }
@@ -30,3 +30,23 @@ export interface ResearchUpgrade {
     generatorId?: number; // Only for GENERATOR_SPS_MULTIPLIER
   };
 }
+
+export interface GemShopItem {
+  id: string;
+  name: string;
+  description: string;
+  cost: number; // Gems
+  isPurchased: boolean;
+  icon: string;
+  effect: {
+    type: 'PERMANENT_SPS_BOOST' | 'PERMANENT_CLICK_BOOST' | 'INSTANT_STARDUST' | 'INSTANT_CLICKS';
+    value: number; // Multiplier or absolute value
+  };
+}
+
+export type SelectedItem = 
+  | { type: 'generator'; id: number }
+  | { type: 'sps-upgrade'; id: number }
+  | { type: 'clicker'; id: 'clicker' }
+  | { type: 'research'; id: string }
+  | { type: 'gem-shop'; id: string };
