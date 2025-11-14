@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Generator, FloatingText as FloatingTextType, ResearchUpgrade, GemShopItem as GemShopItemType, SelectedItem as SelectedItemType } from './types';
 import { 
     INITIAL_GENERATORS, 
@@ -169,6 +169,8 @@ function App() {
   const [showAutoSaveMessage, setShowAutoSaveMessage] = useState(false);
   const [selectedItem, setSelectedItem] = useState<SelectedItemType | null>(null);
   const [isGemShopOpen, setIsGemShopOpen] = useState(false);
+  
+  const lastTick = useRef(Date.now());
 
   const permanentBonuses = useMemo(() => {
     const bonuses = {
@@ -226,23 +228,21 @@ function App() {
   }, [clickLevel, permanentBonuses]);
 
   useEffect(() => {
-    const gameTick = setInterval(() => {
-      setStardust(prev => prev + stardustPerSecond / 10);
-    }, 100);
+    const gameLoop = setInterval(() => {
+      const now = Date.now();
+      const deltaTime = (now - lastTick.current) / 1000; // Time in seconds
+      lastTick.current = now;
 
-    return () => clearInterval(gameTick);
-  }, [stardustPerSecond]);
-  
-  useEffect(() => {
-    const researchPointInterval = setInterval(() => {
-      // Award 1 research point every second as long as the player has started generating stardust.
-      // This prevents players from idling at the very beginning to farm points.
+      // Generate Stardust
+      setStardust(prev => prev + stardustPerSecond * deltaTime);
+      
+      // Generate Research Points
       if (stardustPerSecond > 0) {
-        setResearchPoints(prev => prev + 1);
+        setResearchPoints(prev => prev + 1 * deltaTime);
       }
-    }, 1000); // 1 second
+    }, 100); // The loop runs every 100ms, but calculations are based on actual elapsed time
 
-    return () => clearInterval(researchPointInterval);
+    return () => clearInterval(gameLoop);
   }, [stardustPerSecond]);
 
   const saveGame = useCallback(() => {

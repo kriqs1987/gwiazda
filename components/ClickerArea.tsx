@@ -41,7 +41,7 @@ const ClickerArea: React.FC<ClickerAreaProps> = ({ stardust, stardustPerSecond, 
         <p className="text-purple-300 text-lg md:text-xl">Stardust ✨</p>
         <p className="text-sm text-gray-400 mt-1">{formatNumber(stardustPerSecond)} per second</p>
         <div className="mt-4 flex justify-center space-x-6">
-            <p className="text-cyan-300">🔬 {researchPoints.toLocaleString()}</p>
+            <p className="text-cyan-300">🔬 {Math.floor(researchPoints).toLocaleString()}</p>
             <p className="text-yellow-300">💎 {gems.toLocaleString()}</p>
         </div>
       </div>
