@@ -49,4 +49,5 @@ export type SelectedItem =
   | { type: 'sps-upgrade'; id: number }
   | { type: 'clicker'; id: 'clicker' }
   | { type: 'research'; id: string }
-  | { type: 'gem-shop'; id: string };
+  | { type: 'gem-shop'; id: string }
+  | { type: 'stardust-to-gem'; id: 'stardust-to-gem' };

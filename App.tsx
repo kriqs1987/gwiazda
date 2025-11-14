@@ -11,6 +11,7 @@ import {
     CLICK_POWER_PER_LEVEL,
     INITIAL_RESEARCH_UPGRADES,
     INITIAL_GEM_SHOP_ITEMS,
+    STARDUST_FOR_GEM_BASE_COST,
 } from './constants';
 import GeneratorItem from './components/GeneratorItem';
 import ClickerArea from './components/ClickerArea';
@@ -19,6 +20,7 @@ import ClickUpgradeItem from './components/ClickUpgradeItem';
 import DetailsPanel from './components/DetailsPanel';
 import ResearchItem from './components/ResearchItem';
 import GemShopModal from './components/GemShopModal';
+import ClickConversionItem from './components/ClickConversionItem';
 
 const SAVE_GAME_KEY = 'cosmicMinerIdleSave_v4'; // Incremented version to prevent loading old, incompatible saves
 
@@ -30,6 +32,7 @@ const loadGameState = (): {
     initialClickLevel: number; 
     initialResearchUpgrades: ResearchUpgrade[];
     initialGemShopItems: GemShopItemType[];
+    initialStardustToGemPurchases: number;
 } => {
   try {
     const savedGame = localStorage.getItem(SAVE_GAME_KEY);
@@ -42,6 +45,7 @@ const loadGameState = (): {
           initialClickLevel: INITIAL_CLICK_LEVEL,
           initialResearchUpgrades: INITIAL_RESEARCH_UPGRADES,
           initialGemShopItems: INITIAL_GEM_SHOP_ITEMS,
+          initialStardustToGemPurchases: 0,
       };
     }
 
@@ -119,6 +123,7 @@ const loadGameState = (): {
     const loadedClickLevel = savedState.clickLevel || INITIAL_CLICK_LEVEL;
     const loadedResearchPoints = (savedState.researchPoints || 0) + offlineResearchPointsGains;
     const loadedGems = savedState.gems ?? 20; // Give gems to players from old saves
+    const loadedStardustToGemPurchases = savedState.stardustToGemPurchases || 0;
 
     return { 
         initialStardust: totalStardust, 
@@ -128,6 +133,7 @@ const loadGameState = (): {
         initialClickLevel: loadedClickLevel,
         initialResearchUpgrades: loadedResearchUpgrades,
         initialGemShopItems: loadedGemShopItems,
+        initialStardustToGemPurchases: loadedStardustToGemPurchases,
     };
   } catch (error) {
     console.error("Failed to load or parse saved game. Resetting state.", error);
@@ -140,6 +146,7 @@ const loadGameState = (): {
         initialClickLevel: INITIAL_CLICK_LEVEL,
         initialResearchUpgrades: INITIAL_RESEARCH_UPGRADES,
         initialGemShopItems: INITIAL_GEM_SHOP_ITEMS,
+        initialStardustToGemPurchases: 0,
     };
   }
 };
@@ -152,12 +159,14 @@ function App() {
       initialGenerators, 
       initialClickLevel, 
       initialResearchUpgrades,
-      initialGemShopItems
+      initialGemShopItems,
+      initialStardustToGemPurchases,
     }] = useState(loadGameState);
 
   const [stardust, setStardust] = useState<number>(initialStardust);
   const [researchPoints, setResearchPoints] = useState<number>(initialResearchPoints);
   const [gems, setGems] = useState<number>(initialGems);
+  const [stardustToGemPurchases, setStardustToGemPurchases] = useState<number>(initialStardustToGemPurchases);
 
   const [generators, setGenerators] = useState<Generator[]>(initialGenerators);
   const [floatingTexts, setFloatingTexts] = useState<FloatingTextType[]>([]);
@@ -165,7 +174,7 @@ function App() {
   const [researchUpgrades, setResearchUpgrades] = useState<ResearchUpgrade[]>(initialResearchUpgrades);
   const [gemShopItems, setGemShopItems] = useState<GemShopItemType[]>(initialGemShopItems);
 
-  const [activeTab, setActiveTab] = useState<'buy' | 'upgrades' | 'research'>('buy');
+  const [activeTab, setActiveTab] = useState<'buy' | 'upgrades' | 'research' | 'trade'>('buy');
   const [showAutoSaveMessage, setShowAutoSaveMessage] = useState(false);
   const [selectedItem, setSelectedItem] = useState<SelectedItemType | null>(null);
   const [isGemShopOpen, setIsGemShopOpen] = useState(false);
@@ -255,13 +264,14 @@ function App() {
         clickLevel,
         researchUpgrades,
         gemShopItems,
+        stardustToGemPurchases,
         lastSaveTimestamp: Date.now(),
       };
       localStorage.setItem(SAVE_GAME_KEY, JSON.stringify(gameState));
     } catch (error) {
       console.error("Failed to save game state:", error);
     }
-  }, [stardust, researchPoints, gems, generators, clickLevel, researchUpgrades, gemShopItems]);
+  }, [stardust, researchPoints, gems, generators, clickLevel, researchUpgrades, gemShopItems, stardustToGemPurchases]);
 
   useEffect(() => {
     const saveInterval = setInterval(() => {
@@ -292,6 +302,10 @@ function App() {
   const calculateClickUpgradeCost = useCallback(() => {
     return Math.ceil(CLICK_UPGRADE_BASE_COST * Math.pow(CLICK_UPGRADE_COST_MULTIPLIER, clickLevel - 1));
   }, [clickLevel]);
+
+  const calculateStardustForGemCost = useCallback(() => {
+    return STARDUST_FOR_GEM_BASE_COST;
+  }, []);
 
   const handleMainClick = useCallback((e: React.MouseEvent<HTMLElement>) => {
     const currentClickValue = clickValue;
@@ -360,12 +374,20 @@ function App() {
     }
   };
 
+  const handleTradeStardustForGem = () => {
+    const cost = calculateStardustForGemCost();
+    if (stardust >= cost) {
+        setStardust(prev => prev - cost);
+        setGems(prev => prev + 1);
+        setStardustToGemPurchases(prev => prev + 1);
+    }
+  };
 
   const removeFloatingText = (id: number) => {
     setFloatingTexts(prev => prev.filter(text => text.id !== id));
   };
   
-  const tabButtonStyle = (tabName: 'buy' | 'upgrades' | 'research') => `
+  const tabButtonStyle = (tabName: 'buy' | 'upgrades' | 'research' | 'trade') => `
     flex-1 py-3 text-center font-semibold text-lg transition-colors duration-300
     focus:outline-none
     ${activeTab === tabName 
@@ -399,6 +421,7 @@ function App() {
             <button onClick={() => setActiveTab('buy')} className={tabButtonStyle('buy')}>Buy</button>
             <button onClick={() => setActiveTab('upgrades')} className={tabButtonStyle('upgrades')}>Upgrade</button>
             <button onClick={() => setActiveTab('research')} className={tabButtonStyle('research')}>Research</button>
+            <button onClick={() => setActiveTab('trade')} className={tabButtonStyle('trade')}>Trade</button>
         </div>
         <div className="flex-grow overflow-y-auto p-4 space-y-3">
           {activeTab === 'buy' && generators.map(gen => (
@@ -446,6 +469,16 @@ function App() {
                 isSelected={selectedItem?.type === 'research' && selectedItem.id === res.id}
               />
           ))}
+          {activeTab === 'trade' && (
+            <ClickConversionItem
+                stardust={stardust}
+                cost={calculateStardustForGemCost()}
+                onTrade={handleTradeStardustForGem}
+                onSelect={() => setSelectedItem({type: 'stardust-to-gem', id: 'stardust-to-gem'})}
+                isSelected={selectedItem?.type === 'stardust-to-gem' && selectedItem.id === 'stardust-to-gem'}
+                gemsPurchased={stardustToGemPurchases}
+            />
+          )}
         </div>
         <DetailsPanel
             selectedItem={selectedItem}
@@ -458,6 +491,8 @@ function App() {
             gemShopItems={gemShopItems}
             stardustPerSecond={stardustPerSecond}
             clickValue={clickValue}
+            calculateStardustForGemCost={calculateStardustForGemCost}
+            stardustToGemPurchases={stardustToGemPurchases}
         />
          <div className="flex-shrink-0 p-2 border-t border-purple-500 border-opacity-50 bg-black bg-opacity-20 flex space-x-2">
             <button onClick={handleManualSave} className="flex-1 bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded transition-colors duration-200">Save Game</button>

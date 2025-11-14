@@ -186,3 +186,6 @@ export const INITIAL_GEM_SHOP_ITEMS: GemShopItem[] = [
     }
   },
 ];
+
+// Stardust to Gem Trade
+export const STARDUST_FOR_GEM_BASE_COST = 1000;

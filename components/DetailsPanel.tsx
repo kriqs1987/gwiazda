@@ -13,6 +13,8 @@ interface DetailsPanelProps {
     calculateCost: (generator: Generator) => number;
     calculateUpgradeCost: (generator: Generator) => number;
     calculateClickUpgradeCost: () => number;
+    calculateStardustForGemCost: () => number;
+    stardustToGemPurchases: number;
 }
 
 const formatNumber = (num: number): string => {
@@ -34,7 +36,9 @@ const DetailsPanel: React.FC<DetailsPanelProps> = ({
     clickValue,
     calculateCost, 
     calculateUpgradeCost, 
-    calculateClickUpgradeCost 
+    calculateClickUpgradeCost,
+    calculateStardustForGemCost,
+    stardustToGemPurchases
 }) => {
 
     if (!selectedItem) {
@@ -47,6 +51,19 @@ const DetailsPanel: React.FC<DetailsPanelProps> = ({
 
     const renderContent = () => {
         const { type, id } = selectedItem;
+
+        if (type === 'stardust-to-gem') {
+            const cost = calculateStardustForGemCost();
+            return (
+                <div className="space-y-1 text-left">
+                    <p className="font-bold text-yellow-300 text-base">Trade: Stardust to Gem 🔄</p>
+                    <p className="text-gray-300 italic text-sm">"Transmute raw cosmic matter into a concentrated form of power."</p>
+                    <hr className="border-gray-600 my-1"/>
+                    <p>Gems traded: <span className="font-semibold text-white">{stardustToGemPurchases}</span></p>
+                    <p>Gem Cost: <span className="font-semibold text-white">{formatNumber(cost)} Stardust</span></p>
+                </div>
+            );
+        }
 
         if (type === 'clicker') {
             const cost = calculateClickUpgradeCost();
